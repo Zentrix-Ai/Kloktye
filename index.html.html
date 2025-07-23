@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kloktye</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      color: #1b3765;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #1b3765;
+    }
+    label, select, input {
+      font-size: 1.2rem;
+      margin: 10px 0;
+      display: block;
+    }
+    input, select, button {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 300px;
+      max-width: 100%;
+    }
+    button {
+      background-color: #fad700;
+      color: #1b3765;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px #fad70088;
+    }
+    button:hover {
+      box-shadow: 0 0 20px #fad700aa;
+      transform: scale(1.05);
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 800px;
+      margin-top: 30px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #1b3765;
+      padding: 12px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+    th {
+      background-color: #1b3765;
+      color: white;
+    }
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kloktye Generator</h1>
+
+  <label for="schoolDay">Kies 'n dag:</label>
+  <select id="schoolDay">
+    <option value="Day 1">Dag 1</option>
+    <option value="Day 2">Dag 2</option>
+    <option value="Day 3">Dag 3</option>
+    <option value="Day 4">Dag 4</option>
+    <option value="Day 5">Dag 5</option>
+    <option value="Day 6">Dag 6</option>
+    <option value="Day 7">Dag 7</option>
+  </select>
+
+  <label>Skool begin tyd:</label>
+  <input type="time" id="startTime" />
+
+  <label>Skool eindig tyd:</label>
+  <input type="time" id="endTime" />
+
+  <label>Hoe wil jy die tye bereken?</label>
+  <select id="modeSelect">
+    <option value="period">Ek wil die lengte van periodes kies</option>
+    <option value="admin">Ek wil admin tyd kies, bereken periodes outomaties</option>
+  </select>
+
+  <div id="modeInputs"></div>
+
+  <div id="beforeEvents">
+    <h3>Voorskoolse Gebeure:</h3>
+  </div>
+  <button onclick="addEvent('beforeEvents')">Voeg Gebeurtenis Voor Skool By</button>
+
+  <div id="afterEvents">
+    <h3>Naschoolse Gebeure:</h3>
+  </div>
+  <button onclick="addEvent('afterEvents')">Voeg Gebeurtenis Ná Skool By</button>
+
+  <br><br>
+  <button onclick="generateSchedule()">Skep Rooster</button>
+
+  <div id="scheduleOutput"></div>
+
+  <script>
+    document.getElementById('modeSelect').addEventListener('change', updateModeInputs);
+    updateModeInputs();
+
+    function updateModeInputs() {
+      const mode = document.getElementById('modeSelect').value;
+      const container = document.getElementById('modeInputs');
+      if (mode === 'period') {
+        container.innerHTML = '<label>Hoe lank is elke periode? (minute):</label><input type="number" id="periodLength" placeholder="Byvoorbeeld: 45" />';
+      } else {
+        container.innerHTML = '<label>Hoe lank is die admin periode? (minute):</label><input type="number" id="adminLength" placeholder="Byvoorbeeld: 30" />';
+      }
+    }
+
+    function addEvent(containerId) {
+      const container = document.getElementById(containerId);
+      const div = document.createElement('div');
+      div.innerHTML = `<input type="text" placeholder="Naam van gebeurtenis" /> <input type="number" placeholder="Duur (minute)" />`;
+      container.appendChild(div);
+    }
+
+    function parseTime(t) {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function toTimeString(mins) {
+      const h = String(Math.floor(mins / 60)).padStart(2, '0');
+      const m = String(mins % 60).padStart(2, '0');
+      return `${h}:${m}`;
+    }
+
+    function generateSchedule() {
+      const start = parseTime(document.getElementById('startTime').value);
+      const end = parseTime(document.getElementById('endTime').value);
+      const mode = document.getElementById('modeSelect').value;
+      const selectedDay = document.getElementById('schoolDay').value;
+      const breakDuration = 30;
+      let currentTime = start;
+      let schedule = [];
+
+      const beforeDivs = document.querySelectorAll('#beforeEvents div');
+      beforeDivs.forEach(div => {
+        const name = div.querySelector('input:nth-child(1)').value;
+        const duration = parseInt(div.querySelector('input:nth-child(2)').value) || 0;
+        schedule.push({ name, start: toTimeString(currentTime), end: toTimeString(currentTime + duration), duration });
+        currentTime += duration;
+      });
+
+      const teachingStart = currentTime;
+      const afterDivs = document.querySelectorAll('#afterEvents div');
+      let afterEventsDuration = 0;
+      afterDivs.forEach(div => {
+        afterEventsDuration += parseInt(div.querySelector('input:nth-child(2)').value) || 0;
+      });
+
+      const availableTeachingTime = end - start - afterEventsDuration - (currentTime - teachingStart);
+      let adminDuration = 0;
+      let periodLength = 0;
+
+      if (mode === 'period') {
+        periodLength = parseInt(document.getElementById('periodLength').value) || 45;
+        const totalFixed = (periodLength * 7) + breakDuration;
+        adminDuration = availableTeachingTime - totalFixed;
+        if (adminDuration < 0) return alert("Tye pas nie. Verkort periodes of verleng die dag.");
+      } else {
+        adminDuration = parseInt(document.getElementById('adminLength').value) || 30;
+        const totalFixed = adminDuration + breakDuration;
+        periodLength = Math.floor((availableTeachingTime - totalFixed) / 7);
+        if (periodLength <= 0) return alert("Nie genoeg tyd oor vir periodes nie.");
+      }
+
+      schedule.push({ name: "Admin Periode", start: toTimeString(currentTime), end: toTimeString(currentTime + adminDuration), duration: adminDuration });
+      currentTime += adminDuration;
+
+      for (let i = 1; i <= 7; i++) {
+        if (i === 4) {
+          schedule.push({ name: "POUSE", start: toTimeString(currentTime), end: toTimeString(currentTime + breakDuration), duration: breakDuration, bold: true });
+          currentTime += breakDuration;
+        }
+
+        if (i === 7) {
+          schedule.push({ name: `Periode 7 (Juniors)`, start: toTimeString(currentTime), end: toTimeString(currentTime + periodLength - 10), duration: periodLength - 10 });
+          schedule.push({ name: `Periode 7 (Seniors)`, start: toTimeString(currentTime), end: toTimeString(currentTime + periodLength), duration: periodLength });
+        } else {
+          schedule.push({ name: `Periode ${i}`, start: toTimeString(currentTime), end: toTimeString(currentTime + periodLength), duration: periodLength });
+        }
+
+        currentTime += periodLength;
+      }
+
+      afterDivs.forEach(div => {
+        const name = div.querySelector('input:nth-child(1)').value;
+        const duration = parseInt(div.querySelector('input:nth-child(2)').value) || 0;
+        schedule.push({ name, start: toTimeString(currentTime), end: toTimeString(currentTime + duration), duration });
+        currentTime += duration;
+      });
+
+      let html = `<h2>${selectedDay}</h2><table><tr><th>Periode</th><th>Tyd</th><th>Duur (min)</th></tr>`;
+      schedule.forEach(item => {
+        html += `<tr${item.bold ? ' class="bold"' : ''}><td>${item.name}</td><td>${item.start} - ${item.end}</td><td>${item.duration}</td></tr>`;
+      });
+      html += `</table>`;
+      document.getElementById('scheduleOutput').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
