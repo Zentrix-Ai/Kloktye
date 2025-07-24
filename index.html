@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kloktye</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1b3765;
+      color: #fad700;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: #12294a;
+      border-radius: 15px;
+      padding: 30px 40px;
+      width: 480px;
+      box-shadow: 0 0 20px #fad700aa;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 3em;
+      margin: 0 0 15px 0;
+      font-weight: bold;
+    }
+    label {
+      font-size: 1.1em;
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 1em;
+      border: 2px solid #fad700;
+      border-radius: 8px;
+      background: #1b3765;
+      color: #fad700;
+      outline: none;
+      box-sizing: border-box;
+      transition: box-shadow 0.3s ease;
+    }
+    select:focus, input:focus {
+      box-shadow: 0 0 8px #fad700;
+      border-color: #fad700;
+    }
+    .radio-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+    .radio-group label {
+      font-weight: normal;
+      font-size: 1.1em;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+      background: #12294a;
+      padding: 10px 0;
+      border-radius: 10px;
+      border: 2px solid #fad700;
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    .radio-group input[type="radio"] {
+      display: none;
+    }
+    .radio-group input[type="radio"]:checked + label {
+      background: #fad700;
+      color: #1b3765;
+      font-weight: bold;
+      box-shadow: 0 0 12px #fad700;
+    }
+    .events-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .events-group > * {
+      flex: 1;
+      min-width: 110px;
+    }
+    button {
+      background-color: #fad700;
+      color: #1b3765;
+      border: none;
+      padding: 12px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #fad700;
+      transition: box-shadow 0.3s ease;
+      user-select: none;
+      margin-top: 10px;
+    }
+    button:hover {
+      box-shadow: 0 0 25px #fad700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+    th, td {
+      border: 2px solid #fad700;
+      padding: 12px 8px;
+      text-align: center;
+      font-size: 1.1em;
+    }
+    th {
+      background-color: #fad700;
+      color: #1b3765;
+    }
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Kloktye</h1>
+
+    <div>
+      <label for="day">Kies Dag:</label>
+      <select id="day">
+        <option value="Dag 1">Dag 1</option>
+        <option value="Dag 2">Dag 2</option>
+        <option value="Dag 3">Dag 3</option>
+        <option value="Dag 4">Dag 4</option>
+        <option value="Dag 5">Dag 5</option>
+        <option value="Dag 6">Dag 6</option>
+        <option value="Dag 7">Dag 7</option>
+      </select>
+    </div>
+
+    <div class="radio-group">
+      <input type="radio" id="modeAdmin" name="mode" value="admin" checked />
+      <label for="modeAdmin">Spesifiseer Admin Tyd</label>
+
+      <input type="radio" id="modePeriod" name="mode" value="period" />
+      <label for="modePeriod">Spesifiseer Periode Lengte</label>
+    </div>
+
+    <div id="adminGroup">
+      <label>Admin Tyd (min):</label>
+      <input type="number" id="adminLength" min="0" />
+    </div>
+
+    <div id="periodGroup" style="display:none;">
+      <label>Periode Lengte (min):</label>
+      <input type="number" id="periodLength" min="1" />
+    </div>
+
+    <div class="events-group">
+      <div style="flex: 2;">
+        <label>Gebeurtenis Naam:</label>
+        <input type="text" id="eventName" placeholder="Naam" />
+      </div>
+      <div>
+        <label>Duur (min):</label>
+        <input type="number" id="eventDuration" min="1" placeholder="min" />
+      </div>
+      <div>
+        <label>Posisie:</label>
+        <select id="eventPosition">
+          <option value="before">Voor Skool</option>
+          <option value="after">Na Skool</option>
+        </select>
+      </div>
+      <div style="align-self: flex-end;">
+        <button onclick="addEvent()">Voeg By</button>
+      </div>
+    </div>
+
+    <div style="display:flex; gap: 15px; justify-content:center;">
+      <button onclick="generateSchedule()">Genereer Rooster</button>
+      <button onclick="clearSchedule()">Maak Skoon</button>
+      <button onclick="copySchedule()">Kopieer Rooster</button>
+    </div>
+
+    <div id="output"></div>
+  </div>
+
+  <script>
+    const adminGroup = document.getElementById("adminGroup");
+    const periodGroup = document.getElementById("periodGroup");
+    const radioButtons = document.querySelectorAll("input[name='mode']");
+    radioButtons.forEach(radio => {
+      radio.addEventListener("change", () => {
+        if (radio.value === "admin") {
+          adminGroup.style.display = "block";
+          periodGroup.style.display = "none";
+        } else {
+          adminGroup.style.display = "none";
+          periodGroup.style.display = "block";
+        }
+      });
+    });
+
+    let events = [];
+
+    function addEvent() {
+      const name = document.getElementById("eventName").value.trim();
+      const duration = parseInt(document.getElementById("eventDuration").value);
+      const position = document.getElementById("eventPosition").value;
+      if (!name) return alert("Voer asseblief 'n naam vir die gebeurtenis in.");
+      if (!(duration > 0)) return alert("Voer asseblief 'n geldige duur in.");
+      events.push({ name, duration, position });
+      alert(`Gebeurtenis "${name}" van ${duration} min bygevoeg.`);
+      document.getElementById("eventName").value = "";
+      document.getElementById("eventDuration").value = "";
+    }
+
+    function formatTime(date) {
+      return date.toTimeString().slice(0, 5);
+    }
+
+    function addMinutes(date, mins) {
+      return new Date(date.getTime() + mins * 60000);
+    }
+
+    function generateSchedule() {
+      const adminLength = parseInt(document.getElementById("adminLength").value || 0);
+      const customPeriodLength = parseInt(document.getElementById("periodLength").value || 0);
+      const mode = document.querySelector("input[name='mode']:checked").value;
+      const day = document.getElementById("day").value;
+
+      // Fixed school times
+      const startTime = "07:30";
+      const endTime = "14:00";
+
+      let schedule = [];
+      let current = new Date(`1970-01-01T${startTime}:00`);
+      const final = new Date(`1970-01-01T${endTime}:00`);
+
+      // Add before school events
+      events.filter(e => e.position === "before").forEach(e => {
+        let next = addMinutes(current, e.duration);
+        schedule.push([e.name, `${formatTime(current)} - ${formatTime(next)}`, `${e.duration} min`]);
+        current = next;
+      });
+
+      let totalMins = (final - current) / 60000;
+      const breakTime = 30;
+
+      let periodLengthBase = 0;
+      let adminTime = 0;
+
+      if (mode === "admin") {
+        adminTime = adminLength;
+        periodLengthBase = Math.floor((totalMins - adminTime - breakTime) / 7);
+      } else {
+        periodLengthBase = customPeriodLength;
+        adminTime = Math.floor(totalMins - periodLengthBase * 7 - breakTime);
+      }
+
+      if (adminTime < 0 || periodLengthBase < 1) {
+        alert("Tye of waardes is nie geldig nie. Pas asseblief die insette aan.");
+        return;
+      }
+
+      // Add admin period if any
+      if (adminTime > 0) {
+        let next = addMinutes(current, adminTime);
+        schedule.push(["Admin Tyd", `${formatTime(current)} - ${formatTime(next)}`, `${adminTime} min`]);
+        current = next;
+      }
+
+      // Calculate leftover minutes for squeezing
+      let totalScheduledMins = adminTime + breakTime + periodLengthBase * 7;
+      let leftover = totalMins - totalScheduledMins;
+
+      // Distribute leftover minutes as fractions over 7 periods
+      let squeezePerPeriod = leftover / 7;
+
+      // Schedule periods and break after 3rd period
+      for (let i = 1; i <= 7; i++) {
+        let actualPeriodMins = periodLengthBase + squeezePerPeriod;
+        let next = addMinutes(current, actualPeriodMins);
+        // Show base period length only (no squeezing shown)
+        schedule.push([`Periode ${i}`, `${formatTime(current)} - ${formatTime(next)}`, `${periodLengthBase} min`]);
+        current = next;
+
+        if (i === 3) {
+          let breakEnd = addMinutes(current, breakTime);
+          schedule.push(["<strong>Pouse</strong>", `${formatTime(current)} - ${formatTime(breakEnd)}`, `${breakTime} min`]);
+          current = breakEnd;
+        }
+      }
+
+      // Fix junior/senior timing:
+      // Seniors end exactly at 14:00
+      const seniorEnd = final;
+      // Juniors end 10 min before seniors
+      const juniorEnd = new Date(seniorEnd.getTime() - 10 * 60000);
+
+      // Juniors 7th period start time (using base period length)
+      const seventhPeriodDuration = periodLengthBase;
+      const seventhPeriodStartJunior = new Date(juniorEnd.getTime() - seventhPeriodDuration * 60000);
+
+      // Replace last period 7 entry with juniors time (ending at juniorEnd)
+      schedule[schedule.length - 1] = [
+        "Periode 7 (Juniors)",
+        `${formatTime(seventhPeriodStartJunior)} - ${formatTime(juniorEnd)}`,
+        `${seventhPeriodDuration} min`
+      ];
+
+      // Add seniors 7th period (10 min, finishing at 14:00)
+      schedule.push([
+        "Periode 7 (Seniors)",
+        `${formatTime(juniorEnd)} - ${formatTime(seniorEnd)}`,
+        `10 min`
+      ]);
+
+      current = seniorEnd;
+
+      // Add after school events
+      events.filter(e => e.position === "after").forEach(e => {
+        let next = addMinutes(current, e.duration);
+        schedule.push([e.name, `${formatTime(current)} - ${formatTime(next)}`, `${e.duration} min`]);
+        current = next;
+      });
+
+      // Render table
+      let html = `<h2 style="text-align:center;">${day}</h2>`;
+      html += `<table><thead><tr><th>Periode</th><th>Tye</th><th>Duur</th></tr></thead><tbody>`;
+      schedule.forEach(row => {
+        html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+
+      document.getElementById("output").innerHTML = html;
+    }
+
+    function clearSchedule() {
+      document.getElementById("output").innerHTML = "";
+      events = [];
+    }
+
+    function copySchedule() {
+      const range = document.createRange();
+      const outputDiv = document.getElementById("output");
+      range.selectNode(outputDiv);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      try {
+        document.execCommand('copy');
+        alert('Rooster is gekopieer!');
+      } catch (err) {
+        alert('Kan nie kopieer nie, probeer asseblief handmatig kopieer.');
+      }
+      window.getSelection().removeAllRanges();
+    }
+  </script>
+</body>
+</html>
+
+
