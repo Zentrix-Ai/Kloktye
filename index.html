@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="af">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kloktye Generator - Dag Selector, Juniors/Seniors & STAAK Mode</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: linear-gradient(135deg, #1b3766, #fad701);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 3px #0009;
+    }
+
+    #configForm {
+      background: rgba(27, 55, 102, 0.85);
+      padding: 25px 35px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #fad701aa;
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    /* Label on top of input */
+    #configForm label {
+      font-weight: 600;
+      user-select: none;
+      text-shadow: 0 0 4px #0009;
+      margin-bottom: 6px;
+      display: block;
+      color: #fad701;
+    }
+
+    /* Sleek white inputs with subtle shadow and yellow outline on focus */
+    #configForm input[type="number"],
+    #configForm input[type="text"],
+    #configForm select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 1.5px 5px rgba(0, 0, 0, 0.15);
+      outline: 2px solid transparent;
+      transition: outline-color 0.3s ease, box-shadow 0.3s ease;
+      color: #1b3766;
+      background-color: white;
+    }
+
+    #configForm input[type="number"]:focus,
+    #configForm input[type="text"]:focus,
+    #configForm select:focus {
+      outline-color: #fad701;
+      box-shadow: 0 0 8px #fad701;
+    }
+
+    /* Buttons container - horizontal row with spacing */
+    #buttonGroup {
+      display: flex;
+      gap: 18px;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* Yellow buttons with subtle glow */
+    button:not(#staakButton) {
+      background-color: #fad701;
+      border: none;
+      border-radius: 10px;
+      color: #1b3766;
+      font-weight: 700;
+      padding: 12px 24px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px #fad701aa;
+      transition: all 0.3s ease;
+      user-select: none;
+      flex-shrink: 0;
+      min-width: 140px;
+    }
+
+    button:not(#staakButton):hover {
+      background-color: #fff;
+      box-shadow: 0 0 20px #ffd600, 0 0 15px #ffd600 inset;
+      color: #1b3766;
+    }
+
+    /* STAAK button blue with white hover */
+    #staakButton {
+      background-color: #1b3766;
+      box-shadow: 0 0 12px #1b3766aa;
+      color: white;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+      min-width: 140px;
+    }
+
+    #staakButton:hover {
+      background-color: white;
+      box-shadow: 0 0 20px #1b3766, 0 0 12px #1b3766 inset;
+      color: #1b3766;
+    }
+
+    /* STAak Controls panel */
+    #staakControls {
+      background: rgba(27, 55, 102, 0.85);
+      border-radius: 12px;
+      padding: 15px 20px;
+      width: 100%;
+      max-width: 720px;
+      box-shadow: 0 0 15px #fad701aa;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 25px;
+      color: #fad701;
+      font-weight: 700;
+      flex-wrap: wrap;
+    }
+
+    #staakControls label {
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    #staakControls select,
+    #staakControls input {
+      border-radius: 8px;
+      border: none;
+      outline-offset: 2px;
+      outline-color: #fad701;
+      font-weight: 600;
+      padding: 6px 10px;
+      font-size: 1rem;
+      color: #1b3766;
+      font-family: Arial, sans-serif;
+      width: 140px;
+    }
+
+    #staakControls button {
+      min-width: 100px;
+      background-color: #fad701;
+      color: #1b3766;
+      font-weight: 700;
+      padding: 10px 16px;
+      box-shadow: 0 0 15px #fad701aa;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #staakControls button:hover {
+      background-color: #fff;
+      color: #1b3766;
+      box-shadow: 0 0 25px #ffd600, 0 0 15px #ffd600 inset;
+    }
+
+    /* Schedule container */
+    #schedule {
+      width: 100%;
+      max-width: 720px;
+      background: rgba(255 255 255 / 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 0 25px #fad701aa;
+      color: white;
+      font-weight: 600;
+      user-select: none;
+      min-height: 250px;
+    }
+
+    .schedule-item {
+      border: 1.5px solid rgba(255 255 255 / 0.3);
+      padding: 12px 15px;
+      margin: 7px 0;
+      background-color: rgba(27, 55, 102, 0.75);
+      cursor: move;
+      border-radius: 8px;
+      box-shadow: inset 0 0 8px #0008;
+      transition: background-color 0.3s ease;
+      position: relative;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .schedule-item.fixed {
+      background-color: rgba(27, 55, 102, 0.95);
+      cursor: move;
+      font-weight: 700;
+      box-shadow: 0 0 10px #fad701cc inset;
+    }
+
+    .schedule-item.bold {
+      font-weight: 700;
+      color: #fad701;
+      text-shadow: 0 0 3px #fad701cc;
+    }
+
+    .schedule-item[draggable="false"] {
+      cursor: default;
+    }
+
+    /* Drop indicator line */
+    .drop-before {
+      border-top: 5px solid #fad701 !important;
+      box-shadow: 0 2px 8px #fad701;
+    }
+
+    /* Dragging style */
+    .dragging {
+      opacity: 0.5;
+    }
+
+    /* Responsive inputs and buttons */
+    @media (max-width: 480px) {
+      #configForm {
+        padding: 20px;
+      }
+      #buttonGroup {
+        justify-content: center;
+      }
+      button, #staakControls select, #staakControls input {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Kloktye Generator</h1>
+  <form id="configForm" onsubmit="return false;">
+    <label for="daySelect">Kies Dag:</label>
+    <select id="daySelect" onchange="generateSchedule()">
+      <option value="1">Dag 1</option>
+      <option value="2">Dag 2</option>
+      <option value="3">Dag 3</option>
+      <option value="4">Dag 4</option>
+      <option value="5">Dag 5</option>
+      <option value="6">Dag 6</option>
+      <option value="7">Dag 7</option>
+    </select>
+
+    <label for="adminLength">Voog Tyd Lengte (minute):</label>
+    <input type="number" id="adminLength" value="15" min="0" />
+
+    <label for="pouseLength">Pouse Lengte (minute):</label>
+    <input type="number" id="pouseLength" value="15" min="1" />
+
+    <label for="eventName">Gebeurtenis Naam:</label>
+    <input type="text" id="eventName" placeholder="Byvoorbeeld: Sport" />
+
+    <label for="eventDuration">Lengte (minute):</label>
+    <input type="number" id="eventDuration" value="10" min="1" />
+
+    <div id="buttonGroup">
+      <button type="button" onclick="addGebeurtenis()">Voeg Gebeurtenis By</button>
+      <button type="button" onclick="generateSchedule()">Genereer Rooster</button>
+      <button id="staakButton" type="button" onclick="toggleStaakMode()">STAAK Mode</button>
+      <button type="button" onclick="updateVergadering()">Voeg Personeel Vergadering By</button>
+      <button type="button" onclick="copySchedule()">Kopieer Rooster</button>
+      <button type="button" onclick="clearAll()">Maak Alles Skoner</button>
+    </div>
+  </form>
+
+  <div id="staakControls" style="display: none;">
+    <label>Verleng vanaf gebeurtenis:</label>
+    <select id="staakEventSelect"></select>
+    <input type="number" id="staakNewDuration" placeholder="Nuwe duur (min)" />
+    <button onclick="applyStaakChange()">STAAK OK</button>
+  </div>
+
+  <div id="schedule"></div>
+
+<script>
+  const startOfDay = toMinutes("07:25");
+  const endOfDay = toMinutes("14:00");
+  const totalDayLength = endOfDay - startOfDay;
+  const juniorOffset = 10; // Juniors end 10 minutes before Seniors start for Period 7
+
+  let gebeurtenisse = [];
+  let schedule = [];
+  let vergaderingItem = null;
+  let staakModeActive = false;
+
+  function toMinutes(time) {
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + m;
+  }
+  function toTime(minutes) {
+    const h = String(Math.floor(minutes / 60)).padStart(2, "0");
+    const m = String(minutes % 60).padStart(2, "0");
+    return `${h}:${m}`;
+  }
+  function generateId() {
+    return "_" + Math.random().toString(36).substr(2, 9);
+  }
+
+  function addGebeurtenis() {
+    const name = document.getElementById("eventName").value.trim();
+    const duration = parseInt(document.getElementById("eventDuration").value);
+    if (!name) {
+      alert("Voer asseblief 'n gebeurtenis naam in.");
+      return;
+    }
+    if (isNaN(duration) || duration <= 0) {
+      alert("Voer asseblief 'n geldige duur in.");
+      return;
+    }
+    gebeurtenisse.push({ name, duration });
+    generateSchedule();
+    document.getElementById("eventName").value = "";
+    document.getElementById("eventDuration").value = 10;
+    saveState();
+  }
+
+  function generateSchedule() {
+    const day = parseInt(document.getElementById("daySelect").value);
+    let adminLength = parseInt(document.getElementById("adminLength").value);
+    if (isNaN(adminLength) || adminLength < 0) adminLength = 15;
+
+    let pouseLength = parseInt(document.getElementById("pouseLength").value);
+    if (isNaN(pouseLength) || pouseLength < 1) pouseLength = 15;
+
+    // Set number of periods based on day (Day 7 has 6 periods)
+    const periodCount = day === 7 ? 6 : 7;
+
+    schedule = [];
+
+    const totalEventDuration = totalGebeurtenisDuration();
+    const fixedBlocksLength = adminLength + pouseLength + totalEventDuration;
+
+    // Calculate base period length and leftover minutes
+    const basePeriodLength = Math.floor((totalDayLength - fixedBlocksLength) / periodCount);
+    let leftover = (totalDayLength - fixedBlocksLength) % periodCount;
+
+    // Add Voog (Admin) block - draggable and editable in staak mode
+    schedule.push({
+      id: generateId(),
+      name: "Voog",
+      duration: adminLength,
+      fixed: false,
+      draggable: true,
+      type: "admin",
+    });
+
+    // Add user events (Gebeurtenisse)
+    gebeurtenisse.forEach((g) => {
+      schedule.push({
+        id: generateId(),
+        name: g.name,
+        duration: g.duration,
+        fixed: false,
+        draggable: true,
+        type: "event",
+      });
+    });
+
+    // Add periods BEFORE break (periods 1 to 3)
+    for (let i = 1; i <= Math.min(3, periodCount); i++) {
+      schedule.push({
+        id: generateId(),
+        name: `${i}de Periode`,
+        duration: basePeriodLength + (leftover > 0 ? 1 : 0),
+        fixed: false,
+        draggable: true,
+        type: "period",
+      });
+      if (leftover > 0) leftover--;
+    }
+
+    // Add Pouse (Break) - draggable and editable
+    schedule.push({
+      id: generateId(),
+      name: "Pouse",
+      duration: pouseLength,
+      fixed: false,
+      draggable: true,
+      type: "break",
+    });
+
+    // Add remaining periods AFTER break (periods 4 to periodCount)
+    for (let i = 4; i <= periodCount; i++) {
+      if (day === 7 && i === 6) {
+        // Special split for period 6 on day 7 (juniors and seniors)
+        // Juniors end 10 min before seniors start
+        const juniorsDuration = basePeriodLength + (leftover > 0 ? 1 : 0) - juniorOffset;
+        const seniorsDuration = juniorOffset;
+        if (leftover > 0) leftover--;
+
+        schedule.push({
+          id: generateId(),
+          name: `6de Periode (Juniors)`,
+          duration: juniorsDuration > 0 ? juniorsDuration : basePeriodLength,
+          fixed: false,
+          draggable: true,
+          type: "period_junior",
+        });
+        schedule.push({
+          id: generateId(),
+          name: `6de Periode (Seniors)`,
+          duration: seniorsDuration,
+          fixed: false,
+          draggable: true,
+          type: "period_senior",
+        });
+      } else if (i === 7) {
+        // For all days with period 7, split Juniors and Seniors
+        const juniorsDuration = basePeriodLength + (leftover > 0 ? 1 : 0) - juniorOffset;
+        const seniorsDuration = juniorOffset;
+        if (leftover > 0) leftover--;
+
+        schedule.push({
+          id: generateId(),
+          name: `7de Periode (Juniors)`,
+          duration: juniorsDuration > 0 ? juniorsDuration : basePeriodLength,
+          fixed: false,
+          draggable: true,
+          type: "period_junior",
+        });
+        schedule.push({
+          id: generateId(),
+          name: `7de Periode (Seniors)`,
+          duration: seniorsDuration,
+          fixed: false,
+          draggable: true,
+          type: "period_senior",
+        });
+      } else {
+        schedule.push({
+          id: generateId(),
+          name: `${i}de Periode`,
+          duration: basePeriodLength + (leftover > 0 ? 1 : 0),
+          fixed: false,
+          draggable: true,
+          type: "period",
+        });
+        if (leftover > 0) leftover--;
+      }
+    }
+
+    recalcTimes();
+    renderSchedule();
+    saveState();
+    populateStaakOptions();
+  }
+
+  function totalGebeurtenisDuration() {
+    return gebeurtenisse.reduce((acc, e) => acc + e.duration, 0);
+  }
+
+  function recalcTimes() {
+    let current = startOfDay;
+    for (const item of schedule) {
+      item.start = current;
+      item.end = current + item.duration;
+      current += item.duration;
+    }
+
+    // Personeel vergadering times (if exists)
+    if (vergaderingItem) {
+      if (!vergaderingItem.start) vergaderingItem.start = toMinutes("06:00");
+      if (!vergaderingItem.duration) vergaderingItem.duration = 60;
+      vergaderingItem.end = vergaderingItem.start + vergaderingItem.duration;
+    }
+  }
+
+  function renderSchedule() {
+    const container = document.getElementById("schedule");
+    container.innerHTML = "";
+
+    // Add Personeel vergadering first if exists
+    if (vergaderingItem) {
+      const vDiv = createScheduleDiv(vergaderingItem, false);
+      container.appendChild(vDiv);
+    }
+
+    for (const item of schedule) {
+      const div = createScheduleDiv(item, true);
+      container.appendChild(div);
+    }
+  }
+
+  function createScheduleDiv(item, draggableAllowed) {
+    const div = document.createElement("div");
+    div.classList.add("schedule-item");
+    if (item.fixed) div.classList.add("fixed");
+    if (item.name === "Voog") div.classList.add("bold");
+    div.textContent = `${toTime(item.start)} - ${toTime(item.end)} | ${item.name} (${item.duration} min)`;
+    div.setAttribute("draggable", draggableAllowed && item.draggable);
+    div.dataset.id = item.id;
+
+    // Drag handlers
+    if (draggableAllowed && item.draggable) {
+      div.addEventListener("dragstart", dragStart);
+      div.addEventListener("dragend", dragEnd);
+      div.addEventListener("dragover", dragOver);
+      div.addEventListener("drop", drop);
+    }
+
+    return div;
+  }
+
+  let dragSrcEl = null;
+
+  function dragStart(e) {
+    dragSrcEl = e.currentTarget;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", dragSrcEl.dataset.id);
+    dragSrcEl.classList.add("dragging");
+  }
+  function dragEnd(e) {
+    e.currentTarget.classList.remove("dragging");
+    clearDropIndicators();
+  }
+  function dragOver(e) {
+    e.preventDefault();
+    const target = e.currentTarget;
+    if (target === dragSrcEl) return;
+
+    clearDropIndicators();
+
+    const rect = target.getBoundingClientRect();
+    const offset = e.clientY - rect.top;
+
+    if (offset < rect.height / 2) {
+      target.classList.add("drop-before");
+      target.dataset.dropPosition = "before";
+    } else {
+      target.classList.add("drop-before");
+      target.dataset.dropPosition = "after";
+    }
+  }
+  function drop(e) {
+    e.preventDefault();
+    const target = e.currentTarget;
+    if (!dragSrcEl || target === dragSrcEl) return;
+
+    const dragId = dragSrcEl.dataset.id;
+    const dropId = target.dataset.id;
+    const dropPos = target.dataset.dropPosition || "after";
+
+    let dragIndex = schedule.findIndex((i) => i.id === dragId);
+    let dropIndex = schedule.findIndex((i) => i.id === dropId);
+    if (dragIndex < 0 || dropIndex < 0) return;
+
+    // Remove dragged item
+    const [dragItem] = schedule.splice(dragIndex, 1);
+
+    // Adjust drop index if dragIndex < dropIndex and drop is after
+    if (dragIndex < dropIndex && dropPos === "after") dropIndex--;
+
+    // Insert dragged item at new position
+    if (dropPos === "before") {
+      schedule.splice(dropIndex, 0, dragItem);
+    } else {
+      schedule.splice(dropIndex + 1, 0, dragItem);
+    }
+
+    recalcTimes();
+    renderSchedule();
+    saveState();
+    populateStaakOptions();
+  }
+  function clearDropIndicators() {
+    document.querySelectorAll(".drop-before").forEach(el => {
+      el.classList.remove("drop-before");
+      delete el.dataset.dropPosition;
+    });
+  }
+
+  function toggleStaakMode() {
+    staakModeActive = !staakModeActive;
+    const controls = document.getElementById("staakControls");
+    if (staakModeActive) {
+      controls.style.display = "flex";
+      document.getElementById("staakButton").textContent = "Sluit STAAK Mode";
+    } else {
+      controls.style.display = "none";
+      document.getElementById("staakButton").textContent = "STAAK Mode";
+    }
+  }
+
+  function populateStaakOptions() {
+    const select = document.getElementById("staakEventSelect");
+    select.innerHTML = "";
+    schedule.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = `${toTime(item.start)} - ${toTime(item.end)} | ${item.name}`;
+      select.appendChild(opt);
+    });
+  }
+
+  function applyStaakChange() {
+    if (!staakModeActive) {
+      alert("STAAK Mode is nie aktief nie.");
+      return;
+    }
+    const selectedId = document.getElementById("staakEventSelect").value;
+    const newDuration = parseInt(document.getElementById("staakNewDuration").value);
+    if (isNaN(newDuration) || newDuration <= 0) {
+      alert("Voer 'n geldige nuwe duur in.");
+      return;
+    }
+
+    // Find index of the event to extend from
+    const index = schedule.findIndex(i => i.id === selectedId);
+    if (index < 0) {
+      alert("Geselekteerde gebeurtenis nie gevind nie.");
+      return;
+    }
+
+    // Update duration of selected event
+    schedule[index].duration = newDuration;
+
+    // Recalculate subsequent durations to fit the day end
+    let totalFixedLength = 0;
+    for (let i = 0; i <= index; i++) {
+      totalFixedLength += schedule[i].duration;
+    }
+
+    let remainingTime = totalDayLength - totalFixedLength;
+
+    if (remainingTime < 0) {
+      alert("Die nuwe duur is te lank en oorskry die skooldag se einde.");
+      return;
+    }
+
+    // Count how many events remain after index
+    const remainingEvents = schedule.length - index - 1;
+    if (remainingEvents === 0) {
+      alert("Geen verdere gebeurtenisse om aan te pas nie.");
+      recalcTimes();
+      renderSchedule();
+      saveState();
+      populateStaakOptions();
+      return;
+    }
+
+    // Distribute remaining time proportionally for all after index
+    // Here we just split evenly for simplicity
+    const evenDuration = Math.floor(remainingTime / remainingEvents);
+    let leftover = remainingTime - (evenDuration * remainingEvents);
+
+    for (let i = index + 1; i < schedule.length; i++) {
+      schedule[i].duration = evenDuration + (leftover > 0 ? 1 : 0);
+      if (leftover > 0) leftover--;
+    }
+
+    recalcTimes();
+    renderSchedule();
+    saveState();
+    populateStaakOptions();
+  }
+
+  // Personeel vergadering - always first, fixed start time, not draggable
+  function updateVergadering() {
+    let duur = prompt("Voer duur van Personeel Vergadering in minute in:", "60");
+    if (!duur) return;
+    duur = parseInt(duur);
+    if (isNaN(duur) || duur <= 0) {
+      alert("Geldige duur asseblief.");
+      return;
+    }
+
+    vergaderingItem = {
+      id: "vergadering",
+      name: "Personeel Vergadering",
+      start: toMinutes("06:00"),
+      duration: duur,
+      end: toMinutes("06:00") + duur,
+      fixed: true,
+      draggable: false,
+      type: "vergadering",
+    };
+    renderSchedule();
+    saveState();
+  }
+
+  function copySchedule() {
+    let copyText = "";
+    const day = document.getElementById("daySelect").value;
+    if (vergaderingItem) {
+      copyText += `Personeel Vergadering\t${toTime(vergaderingItem.start)}\t${toTime(vergaderingItem.end)}\t${vergaderingItem.duration} min\n`;
+    }
+    copyText += `Dag ${day}\nStart\tEindig\tNaam\tLengte\n`;
+    for (const item of schedule) {
+      copyText += `${toTime(item.start)}\t${toTime(item.end)}\t${item.name}\t${item.duration} min\n`;
+    }
+    navigator.clipboard.writeText(copyText).then(() => {
+      alert("Rooster suksesvol na clipboard gekopieer.");
+    }).catch(() => {
+      alert("Kon nie na clipboard kopieer nie.");
+    });
+  }
+
+  function clearAll() {
+    gebeurtenisse = [];
+    schedule = [];
+    vergaderingItem = null;
+    staakModeActive = false;
+    document.getElementById("daySelect").value = "1";
+    document.getElementById("adminLength").value = 15;
+    document.getElementById("pouseLength").value = 15;
+    document.getElementById("eventName").value = "";
+    document.getElementById("eventDuration").value = 10;
+    document.getElementById("staakControls").style.display = "none";
+    document.getElementById("staakButton").textContent = "STAAK Mode";
+    renderSchedule();
+    saveState();
+    populateStaakOptions();
+  }
+
+  // Save and load state to localStorage
+  function saveState() {
+    const state = {
+      dag: document.getElementById("daySelect").value,
+      adminLength: document.getElementById("adminLength").value,
+      pouseLength: document.getElementById("pouseLength").value,
+      gebeurtenisse,
+      vergaderingItem,
+      schedule,
+      staakModeActive,
+    };
+    localStorage.setItem("kloktyeState", JSON.stringify(state));
+  }
+
+  function loadState() {
+    const stateStr = localStorage.getItem("kloktyeState");
+    if (!stateStr) return;
+    const state = JSON.parse(stateStr);
+    document.getElementById("daySelect").value = state.dag || "1";
+    document.getElementById("adminLength").value = state.adminLength || 15;
+    document.getElementById("pouseLength").value = state.pouseLength || 15;
+    gebeurtenisse = state.gebeurtenisse || [];
+    vergaderingItem = state.vergaderingItem || null;
+    schedule = state.schedule || [];
+    staakModeActive = state.staakModeActive || false;
+    if (staakModeActive) {
+      document.getElementById("staakControls").style.display = "flex";
+      document.getElementById("staakButton").textContent = "Sluit STAAK Mode";
+    } else {
+      document.getElementById("staakControls").style.display = "none";
+      document.getElementById("staakButton").textContent = "STAAK Mode";
+    }
+    recalcTimes();
+    renderSchedule();
+    populateStaakOptions();
+  }
+
+  // Initial load
+  window.onload = () => {
+    loadState();
+    if (schedule.length === 0) generateSchedule();
+  };
+</script>
+</body>
+</html>
+
+
